@@ -12,3 +12,4 @@ delete_transient( 'aims_stats' );
 
 global $wpdb;
 $wpdb->query( "DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE '\\_aims\\_%'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE 'aims\\_lock\\_%'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery

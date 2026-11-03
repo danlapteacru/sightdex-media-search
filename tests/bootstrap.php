@@ -1,6 +1,7 @@
 <?php
 require_once dirname( __DIR__ ) . '/vendor/autoload.php';
 require_once __DIR__ . '/stubs/class-wp-error.php';
+require_once __DIR__ . '/stubs/class-fake-options-wpdb.php';
 
 if ( ! defined( 'AIMS_PATH' ) ) {
 	define( 'AIMS_PATH', dirname( __DIR__ ) . '/' );

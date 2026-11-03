@@ -40,9 +40,13 @@ class Indexer {
 	/** @var callable Returns Provider_Interface|WP_Error. */
 	private $provider_factory;
 
-	public function __construct( ?Image_Preparer $preparer = null, ?callable $provider_factory = null ) {
+	/** @var Attachment_Lock */
+	private $lock;
+
+	public function __construct( ?Image_Preparer $preparer = null, ?callable $provider_factory = null, ?Attachment_Lock $lock = null ) {
 		$this->preparer         = $preparer ?? new Image_Preparer();
 		$this->provider_factory = $provider_factory ?? array( Registry::class, 'active' );
+		$this->lock             = $lock ?? new Attachment_Lock();
 	}
 
 	/**
@@ -53,16 +57,15 @@ class Indexer {
 			return new \WP_Error( 'not_found', __( 'Attachment not found.', 'sightdex-media-search' ) );
 		}
 
-		$lock = 'aims_lock_' . $id;
-		if ( get_transient( $lock ) ) {
+		$token = $this->lock->acquire( $id, self::LOCK_TTL );
+		if ( null === $token ) {
 			return new \WP_Error( 'locked', __( 'This file is already being processed.', 'sightdex-media-search' ) );
 		}
-		set_transient( $lock, 1, self::LOCK_TTL );
 
 		try {
 			return $this->run( $id );
 		} finally {
-			delete_transient( $lock );
+			$this->lock->release( $id, $token );
 			Stats_Cache::clear();
 		}
 	}

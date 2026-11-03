@@ -18,9 +18,9 @@ class IndexerTest extends TestCase {
 		Monkey\setUp();
 		Functions\when( '__' )->returnArg( 1 );
 		Functions\when( 'get_option' )->justReturn( array( 'provider' => 'claude', 'language' => 'English', 'custom_prompt' => '', 'fill_alt' => false ) );
-		Functions\when( 'get_transient' )->justReturn( false );
-		Functions\when( 'set_transient' )->justReturn( true );
 		Functions\when( 'delete_transient' )->justReturn( true );
+		Functions\when( 'wp_generate_password' )->justReturn( 'tok' );
+		$GLOBALS['wpdb'] = new \Fake_Options_Wpdb();
 		Functions\when( 'get_post_mime_type' )->justReturn( 'image/jpeg' );
 		Functions\when( 'get_post_type' )->justReturn( 'attachment' );
 
@@ -31,6 +31,7 @@ class IndexerTest extends TestCase {
 	}
 
 	protected function tearDown(): void {
+		unset( $GLOBALS['wpdb'] );
 		Monkey\tearDown();
 		parent::tearDown();
 	}
@@ -131,7 +132,7 @@ class IndexerTest extends TestCase {
 	}
 
 	public function test_lock_prevents_double_processing() {
-		Functions\when( 'get_transient' )->justReturn( 1 );
+		$GLOBALS['wpdb']->rows['aims_lock_5'] = ( time() + 60 ) . ':other';
 		$provider = $this->provider( null );
 		$indexer  = new Indexer( $this->preparer( array() ), function () use ( $provider ) { return $provider; } );
 		$result   = $indexer->index_attachment( 5 );
